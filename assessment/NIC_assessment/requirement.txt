@@ -1,0 +1,4 @@
+xmltodict==0.13.0
+tqdm==4.64.1
+numpy==1.23.5
+matplotlib==3.7.2
