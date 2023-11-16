@@ -4,7 +4,10 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import datetime
+import time
 
+
+# pip install -r requirements.txt
 
 # Read the XML file and save the data in NumPy format. Note: one of brazil and burma must be True and the other False.
 # Parse the XML file through xml.etree.ElementTree,
@@ -158,7 +161,7 @@ def multiple_swap_mutation(m_c, m_d, count):
     return m_e, m_f
 
 
-# 5. Run Replace_Weakest function, firstly for e, then f
+# 5. Run Replace_Weakest function, firstly for e,        then f
 # Replace the value of the worst data in the list
 def Replace_Weakest(fit_list):
     fit_score = CountF(fit_list)
@@ -186,28 +189,34 @@ mutation_count = 6  # Number of mutation operations if 10 exchange 5 times
 tournament_size = 4
 population_size = 10
 
-brazil = False  # Flag for using Brazil data
-burma = True  # Flag for using Burma data
+brazil = True  # Flag for using Brazil data
+burma = False  # Flag for using Burma data
 data, city_count = readXml()  # Read data from XML files and get the city count
 population = initial(population_size)  # Initialize the population
 
 # Flags for different states
 Crossover_with_fix_state = True  # Whether to enable Crossover_with_fix
 OrderedCrossover_state = False  # Whether to enable OrderedCrossover
-single_swap_mutation_state = False  # Whether to enable single swap mutation
-inversion_state = False  # Whether to enable inversion mutation
-multiple_swap_mutation_state = True  # Whether to enable multiple swap mutation
+single_swap_mutation_state = True # Whether to enable single swap mutation
+inversion_state = False # Whether to enable inversion mutation
+multiple_swap_mutation_state = False  # Whether to enable multiple swap mutation
 Replace_FirstWeakest_state = True  # Whether to enable replacing the first weakest individual
 Replace_Weakest_state = False  # Whether to enable replacing the weakest individual
-use_cross = True  # Whether use crossover
 
+use_cross = True  # Whether use crossover
+save_pic_state = False  # Whether save picture
+
+start_time = time.time()
+steps = 10000
 # start to loop
-for step in tqdm(range(10000)):
+for step in tqdm(range(steps)):
     np.random.seed(seed)
     if step == 4000:
         mutation_count = 4
     if step == 6000:
         mutation_count = 2
+    if step == 6000:
+        tournament_size = 6
     a, b = Tournament_Selection(population, tournament_size)
     if use_cross:
         if Crossover_with_fix_state:
@@ -233,10 +242,11 @@ for step in tqdm(range(10000)):
     mutation_count_list.append(mutation_count)
     tournament_size_list.append(tournament_size)
     seed = seed + 1
+end_time = time.time()
 
 y = min(population[:, 1])
 z = np.argmin(population[:, 1])
-x = list(range(0, 10000))
+x = list(range(0, steps))
 current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 plt.figure(figsize=(10, 8))
@@ -264,7 +274,11 @@ plt.plot(x, tournament_size_list, 'b-', lw=3)
 plt.xlabel('step')
 plt.ylabel('kid_count')
 plt.legend(['kid_count'])
-plt.savefig(f'{city}_{current_time}.png')
+if save_pic_state:
+    plt.savefig(f'{city}_{current_time}.png')
 plt.show()
 plt.close()
 print(f'min value of {city} is {population[z, 1]}\nthe route is {population[z, 0]} ')
+# Calculate the time difference
+elapsed_time = end_time - start_time
+print(f"Elapsed time: {elapsed_time} seconds")
