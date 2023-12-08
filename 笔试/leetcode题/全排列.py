@@ -3,8 +3,8 @@ class Solution:
         res = []
 
         def dfs(n, path):
+            res.append(path.copy())
             if n == len(nums):
-                res.append(path.copy())
                 return
             for i in nums:
                 if i not in path:

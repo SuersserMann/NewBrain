@@ -1,12 +1,14 @@
 import numpy as np
 
 np.random.seed(0)
-x_train = np.linspace(1, 101, 100)
-y_train = x_train * 2 + 1
-random_value = 0.1 * np.random.randn(100)
-y_train = y_train + random_value
+x_train = (np.random.rand(1000) * 2 - 1) * 100
+y_train = x_train * 1.477 + 0.089
+
+random_value = np.random.normal(0, 1, 1000)
+# y_train = y_train + random_value
 # print(y_train)
 n = len(x_train)
+
 
 # x_mean = np.mean(x_train)/100
 # x_std = np.std(x_train)/100
@@ -30,9 +32,9 @@ def step_gradient(w, b, x, y, count, lr):
     w_gradient = 0
     b_gradient = 0
     for i in range(count):
-        w_gradient += -(2 / count) * x[i] * (y[i] - (w * x[i] + b))
-        b_gradient += -(2 / count) * (y[i] - (w * x[i] + b))
-    return w - lr * w_gradient, b - lr * b_gradient * 50
+        w_gradient += (2 / count) * x[i] * ((w * x[i] + b) - y[i])
+        b_gradient += (2 / count) * ((w * x[i] + b) - y[i])
+    return w - lr * w_gradient, b - lr * 1000 * b_gradient
 
 
 #
@@ -51,5 +53,5 @@ def step_loop(w, b, x, y, count, lr, step):
 print(MSE(2, 0, [1, 2, 3], [2, 4, 8], 3))
 print(step_gradient(2, 0, [1, 2, 3], [2, 4, 8], 3, 0.01))
 # print(step_loop(2, 0, [1, 2, 3], [2, 4, 7], 3, 0.01, 100))
-print(step_loop(0, 0, x_train, y_train, 100, 1e-4, 1000))
+print(step_loop(0, 0, x_train, y_train, 1000, 1e-5, 1000))
 # 这里面需要注意，一个是初始化w,b很重要，第二，梯度下降的方式很重要，第三，学习率选择很重要，第四，迭代的次数很重要

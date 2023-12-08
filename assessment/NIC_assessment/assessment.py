@@ -185,7 +185,7 @@ mutation_count_list = []
 tournament_size_list = []
 
 seed = 2000  # Seed value for random number generation
-mutation_count = 6  # Number of mutation operations if 10 exchange 5 times
+mutation_count = 2  # Number of mutation operations if 10 exchange 5 times
 tournament_size = 4
 population_size = 10
 
@@ -195,10 +195,10 @@ data, city_count = readXml()  # Read data from XML files and get the city count
 population = initial(population_size)  # Initialize the population
 
 # Flags for different states
-Crossover_with_fix_state = True  # Whether to enable Crossover_with_fix
-OrderedCrossover_state = False  # Whether to enable OrderedCrossover
-single_swap_mutation_state = True # Whether to enable single swap mutation
-inversion_state = False # Whether to enable inversion mutation
+Crossover_with_fix_state = False  # Whether to enable Crossover_with_fix
+OrderedCrossover_state = True  # Whether to enable OrderedCrossover
+single_swap_mutation_state = False  # Whether to enable single swap mutation
+inversion_state = True  # Whether to enable inversion mutation
 multiple_swap_mutation_state = False  # Whether to enable multiple swap mutation
 Replace_FirstWeakest_state = True  # Whether to enable replacing the first weakest individual
 Replace_Weakest_state = False  # Whether to enable replacing the weakest individual
@@ -211,12 +211,12 @@ steps = 10000
 # start to loop
 for step in tqdm(range(steps)):
     np.random.seed(seed)
-    if step == 4000:
-        mutation_count = 4
-    if step == 6000:
-        mutation_count = 2
-    if step == 6000:
-        tournament_size = 6
+    # if step == 2000:
+    #     mutation_count = 6
+    # if step == 6000:
+    #     mutation_count = 2
+    # if step == 6000:
+    #     tournament_size = 6
     a, b = Tournament_Selection(population, tournament_size)
     if use_cross:
         if Crossover_with_fix_state:
