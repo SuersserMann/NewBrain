@@ -27,7 +27,6 @@ items_section_started = False
 nodes_section_started = False
 coordinates = []
 details = []
-
 for line in tqdm(lines, desc='import data'):
     line = line.strip()
     if line.startswith("NODE_COORD_SECTION"):
@@ -45,6 +44,25 @@ for line in tqdm(lines, desc='import data'):
         details.append([int(data[0]), int(data[1]), int(data[2]), int(data[3])])
 coordinates = np.array(coordinates)
 details = np.array(details)
+
+
+def initial_0_1_tags(seed_number):
+    details_classifier_f = [[[], []] for _ in range(dimension)]
+    details_0_1tag_f = [[[], []] for _ in range(dimension)]
+    details_classifier_f[0] = [[0], [0]]
+    details_0_1tag_f[0] = [[0], [0]]
+    for i in range(num_items):
+        details_classifier_f[details[i, 3] - 1][0].append(details[i, 1])
+        details_classifier_f[details[i, 3] - 1][1].append(details[i, 2])
+
+    for i in range(1, dimension):
+        random.seed(seed_number + i)
+        details_0_1tag_f[i][0] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
+        random.seed(seed_number + i + dimension)
+        details_0_1tag_f[i][1] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][1]))])
+    details_classifier_f = np.array(details_classifier_f, dtype=object)
+    details_0_1tag_f = np.array(details_0_1tag_f, dtype=object)
+    return details_classifier_f, details_0_1tag_f
 
 
 # 1. Generate an initial population of p randomly created solutions and assess the fitness of each individual in
@@ -93,6 +111,11 @@ def CountF(p_list):
         s += np.sqrt(np.sum((np.array([coordinates[0, 1], coordinates[0, 2]], dtype=float) - np.array(
             [coordinates[p_list[0], 1], coordinates[p_list[0], 2]], dtype=float)) ** 2))
         return s
+
+
+def CountC(p_list, one_zero_tag):
+    s = capacity
+    speed = max_speed
 
 
 # 2. Use tournament selection twice to select two parents, denoted as a and b
@@ -218,7 +241,7 @@ UseDistanceMatrix = True  # Whether to use the distance matrix,
 if UseDistanceMatrix:
     distance_matrix = distance_matrix_function()
 population = initial(population_size)  # Initialize the population
-
+details_classifier, details_0_1tag = initial_0_1_tags(seed)
 # Flags for different states
 Crossover_with_fix_state = False  # Whether to enable Crossover_with_fix
 OrderedCrossover_state = True  # Whether to enable OrderedCrossover
