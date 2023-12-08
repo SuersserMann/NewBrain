@@ -48,9 +48,9 @@ details = np.array(details)
 
 def initial_0_1_tags(seed_number):
     details_classifier_f = [[[], []] for _ in range(dimension)]
-    details_0_1tag_f = [[[], []] for _ in range(dimension)]
+    details_0_1tag_f = [[[]] for _ in range(dimension)]
     details_classifier_f[0] = [[0], [0]]
-    details_0_1tag_f[0] = [[0], [0]]
+    details_0_1tag_f[0] = [[0]]
     for i in range(num_items):
         details_classifier_f[details[i, 3] - 1][0].append(details[i, 1])
         details_classifier_f[details[i, 3] - 1][1].append(details[i, 2])
@@ -58,8 +58,6 @@ def initial_0_1_tags(seed_number):
     for i in range(1, dimension):
         random.seed(seed_number + i)
         details_0_1tag_f[i][0] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
-        random.seed(seed_number + i + dimension)
-        details_0_1tag_f[i][1] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][1]))])
     details_classifier_f = np.array(details_classifier_f, dtype=object)
     details_0_1tag_f = np.array(details_0_1tag_f, dtype=object)
     return details_classifier_f, details_0_1tag_f
@@ -114,9 +112,17 @@ def CountF(p_list):
 
 
 def CountC(p_list, one_zero_tag):
-    s = capacity
-    speed = max_speed
-
+    # v=v(max)-w/q(v(max)-v(min))
+    distance_cost = CountF(p_list)
+    if UseDistanceMatrix:
+        for i in range(tournament_size):
+            w = 0
+            q = capacity
+            v = max_speed
+            for j in range(1, dimension - 1):  # dont include city1 (1 to dimension-2)(0 in this list)
+                for k in range(len(details_classifier[i, 0])):
+                    # if details_0_1tag[i,0,]
+                    continue
 
 # 2. Use tournament selection twice to select two parents, denoted as a and b
 # Select random numbers within the number of tournament_size non-repeating populations in the population,
