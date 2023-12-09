@@ -99,7 +99,8 @@ def CountF(p_list):
     if UseDistanceMatrix:
         for i in range(dimension - 2):
             s += distance_matrix[p_list[i], p_list[i + 1]]
-        s += distance_matrix[p_list[-1], p_list[0]]
+        s += distance_matrix[p_list[-1], 0]
+        s += distance_matrix[0, p_list[0]]
         return s
     else:
         for i in range(dimension - 2):
@@ -313,7 +314,7 @@ seed = 2000  # Seed value for random number generation
 mutation_count = 2  # Number of mutation operations if 10 exchange 5 times
 tournament_size = 4
 population_size = 10
-UseDistanceMatrix = False  # Whether to use the distance matrix,
+UseDistanceMatrix = True  # Whether to use the distance matrix,
 # this is related to the calculation time,the difference in count_F function
 if UseDistanceMatrix:
     distance_matrix = distance_matrix_function()
