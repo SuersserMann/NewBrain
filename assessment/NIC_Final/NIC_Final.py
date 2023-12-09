@@ -76,7 +76,7 @@ def initial(list_range):
         random.shuffle(initial_list)
         p[i, 0] = initial_list
         p[i, 1] = CountF(initial_list)
-        p[i, 2],p[i, 3]= CountC(initial_list)
+        p[i, 2], p[i, 3] = CountC(initial_list)
     return p
 
 
@@ -120,21 +120,26 @@ def CountC(p_list):
         v = max_speed
         profit = 0
         cost = (distance_matrix[0, p_list[0]] / v) * renting_ratio
+        full = False
         for i in range(1, dimension - 1):  # not include city1 (1 to dimension-2)(0 in this list)
             cur = p_list[i]
-            for j in range(len(details_classifier[cur, 0])):
-                if details_0_1tag[cur][j] == 1:
-                    profit += details_classifier[cur, 0][j]
-                    w += details_classifier[cur, 1][j]
-                else:
-                    continue
+            if not full:
+                for j in range(len(details_classifier[cur, 0])):
+                    if details_0_1tag[cur][j] == 1:
+                        if w < q:
+                            profit += details_classifier[cur, 0][j]
+                            w += details_classifier[cur, 1][j]
+                        else:
+                            full = True
+                    else:
+                        continue
             if w >= q:
                 v = min_speed
             else:
                 v = max_speed - (w / q) * (max_speed - min_speed)
             cost += (distance_matrix[i, i + 1] / v) * renting_ratio
         cost += (distance_matrix[p_list[-1], 0] / v) * renting_ratio
-        return profit-cost,profit
+        return profit - cost, profit
 
 
 # 2. Use tournament selection twice to select two parents, denoted as a and b
@@ -144,15 +149,15 @@ def CountC(p_list):
 # and select the one with the best result to return
 def Tournament_Selection(p_list, count):
     random_t_1 = np.random.choice(population_size, count, replace=False)
-    selected_values = population[random_t_1, 1]
-    min_index = int(random_t_1[np.argmin(selected_values)])
-    res_a = p_list[min_index, 0]
+    selected_values = population[random_t_1, 2]
+    max_index = int(random_t_1[np.argmax(selected_values)])
+    res_a = p_list[max_index, 0]
 
     np.random.seed(seed + np.random.choice(population_size, 1))
     random_t_2 = np.random.choice(population_size, count, replace=False)
-    selected_values = population[random_t_2, 1]
-    min_index = int(random_t_1[np.argmin(selected_values)])
-    res_b = p_list[min_index, 0]
+    selected_values = population[random_t_2, 2]
+    max_index = int(random_t_1[np.argmax(selected_values)])
+    res_b = p_list[max_index, 0]
     return res_a, res_b
 
 
