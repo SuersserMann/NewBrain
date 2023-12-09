@@ -47,19 +47,20 @@ details = np.array(details)
 
 
 def initial_0_1_tags(seed_number):
-    details_classifier_f = [[[], []] for _ in range(dimension)]
-    details_0_1tag_f = [[] for _ in range(dimension)]
-    details_classifier_f[0] = [[0], [0]]
-    details_0_1tag_f[0] = [0]
+    details_classifier_f = [[[], []] for _ in range(dimension - 1)]
+    details_0_1tag_f = [[] for _ in range(dimension - 1)]
+    # details_classifier_f[0] = [[0], [0]]
+    # details_0_1tag_f[0] = [0]
     for i in range(num_items):
-        details_classifier_f[details[i, 3] - 1][0].append(details[i, 1])
-        details_classifier_f[details[i, 3] - 1][1].append(details[i, 2])
+        details_classifier_f[details[i, 3] - 2][0].append(details[i, 1])
+        details_classifier_f[details[i, 3] - 2][1].append(details[i, 2])
 
-    for i in range(1, dimension):
-        random.seed(seed_number + i)
-        details_0_1tag_f[i] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
+    for i in range(dimension - 1):
+        # random.seed(seed_number + i)
+        # details_0_1tag_f[i] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
+        details_0_1tag_f[i] += ([0 for _ in range(len(details_classifier_f[i][0]))])
     details_classifier_f = np.array(details_classifier_f, dtype=object)
-    details_0_1tag_f = np.array(details_0_1tag_f, dtype=object)
+    # details_0_1tag_f = np.array(details_0_1tag_f, dtype=object)
     return details_classifier_f, details_0_1tag_f
 
 
@@ -68,7 +69,7 @@ def initial_0_1_tags(seed_number):
 # Give a seed so that the random value returned each time is fixed
 # The first column is the path, and the second column is the sum of the distances along the path.
 def initial(list_range):
-    p = np.zeros((list_range, 5), dtype=object)
+    p = np.zeros((list_range, 6), dtype=object)
     for i, j in tqdm(zip(range(list_range), range(2023, 2023 + population_size), ), total=list_range, desc='initial '
                                                                                                            'population'):
         random.seed(j)
@@ -76,8 +77,9 @@ def initial(list_range):
         random.shuffle(initial_list)
         p[i, 0] = initial_list
         p[i, 1] = CountF(initial_list)
-        p[i, 2], p[i, 3] = CountC(initial_list)
+        p[i, 2], p[i, 3] = CountC(initial_list, details_0_1tag)
         p[i, 4] = details_0_1tag
+        p[i, 5] = 0
     return p
 
 
@@ -114,7 +116,7 @@ def CountF(p_list):
         return s
 
 
-def CountC(p_list):
+def CountC(p_list, p_tag):
     # v=v(max)-w/q(v(max)-v(min))
     if UseDistanceMatrix:
         w = 0
@@ -122,24 +124,21 @@ def CountC(p_list):
         v = max_speed
         profit = 0
         cost = (distance_matrix[0, p_list[0]] / v) * renting_ratio
-        full = False
-        for i in range(1, dimension - 1):  # not include city1 (1 to dimension-2)(0 in this list)
-            cur = p_list[i]
-            if not full:
-                for j in range(len(details_classifier[cur, 0])):
-                    if details_0_1tag[cur][j] == 1:
-                        if w < q:
-                            profit += details_classifier[cur, 0][j]
-                            w += details_classifier[cur, 1][j]
-                        else:
-                            full = True
-                    else:
-                        continue
+
+        for i in range(dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
+            cur = p_list[i]  # 1-279
+            for j in range(len(details_classifier[cur - 1, 0])):
+                if p_tag[cur - 1][j] == 1:
+                    if w < q:
+                        profit += details_classifier[cur - 1, 0][j]
+                        w += details_classifier[cur - 1, 1][j]
+                else:
+                    continue
             if w >= q:
                 v = min_speed
             else:
                 v = max_speed - (w / q) * (max_speed - min_speed)
-            cost += (distance_matrix[i, i + 1] / v) * renting_ratio
+            cost += (distance_matrix[p_list[i], p_list[i + 1]] / v) * renting_ratio
         cost += (distance_matrix[p_list[-1], 0] / v) * renting_ratio
         return profit - cost, profit
     else:
@@ -147,20 +146,18 @@ def CountC(p_list):
         q = capacity
         v = max_speed
         profit = 0
-        cost = 0
-        full = False
-        for i in range(1, dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
+        cost = (np.sqrt(
+            np.sum((np.array([coordinates[0, 1], coordinates[0, 2]], dtype=float) - np.array(
+                [coordinates[p_list[0], 1], coordinates[p_list[0], 2]], dtype=float)) ** 2)))*renting_ratio
+        for i in range(dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
             cur = p_list[i]
-            if not full:
-                for j in range(len(details_classifier[cur, 0])):
-                    if details_0_1tag[cur][j] == 1:
-                        if w < q:
-                            profit += details_classifier[cur, 0][j]
-                            w += details_classifier[cur, 1][j]
-                        else:
-                            full = True
-                    else:
-                        continue
+            for j in range(len(details_classifier[cur - 1, 0])):
+                if p_tag[cur - 1][j] == 1:
+                    if w < q:
+                        profit += details_classifier[cur - 1, 0][j]
+                        w += details_classifier[cur - 1, 1][j]
+                else:
+                    continue
 
             if w >= q:
                 v = min_speed
@@ -180,37 +177,56 @@ def CountC(p_list):
         cost += (last_distance / v) * renting_ratio
 
         return profit - cost, profit
+
+
 # 2. Use tournament selection twice to select two parents, denoted as a and b
 
 
 # Select random numbers within the number of tournament_size non-repeating populations in the population,
 # and select the one with the best result to return
+seed_tournament = 0
+seed_tournament_1 = 0
+
+
 def Tournament_Selection(p_list, count):
+    global seed_tournament_1
+    np.random.seed(seed + seed_tournament_1)
     random_t_1 = np.random.choice(population_size, count, replace=False)
     selected_values = population[random_t_1, 1]
     min_index = int(random_t_1[np.argmin(selected_values)])
     res_a = p_list[min_index, 0]
+    seed_tournament_1 += 1
 
-    np.random.seed(seed + np.random.choice(population_size, 1))
+    np.random.seed(seed + seed_tournament_1)
     random_t_2 = np.random.choice(population_size, count, replace=False)
     selected_values = population[random_t_2, 1]
     min_index = int(random_t_1[np.argmin(selected_values)])
     res_b = p_list[min_index, 0]
+    seed_tournament_1 += 1
     return res_a, res_b
 
 
 def Tournament_Selection_C(p_list, count):
+    global seed_tournament
+    np.random.seed(seed + seed_tournament)
     random_t_1 = np.random.choice(population_size, count, replace=False)
     selected_values = population[random_t_1, 2]
     max_index = int(random_t_1[np.argmax(selected_values)])
     res_a = p_list[max_index, 0]
+    tag_a = p_list[max_index, 4]
+    weight_a = p_list[max_index, 5]
+    seed_tournament += 1
 
-    np.random.seed(seed + np.random.choice(population_size, 1))
+    np.random.seed(seed + seed_tournament)
     random_t_2 = np.random.choice(population_size, count, replace=False)
     selected_values = population[random_t_2, 2]
     max_index = int(random_t_1[np.argmax(selected_values)])
     res_b = p_list[max_index, 0]
-    return res_a, res_b
+    tag_b = p_list[max_index, 4]
+    weight_b = p_list[max_index, 5]
+    seed_tournament += 1
+
+    return res_a, res_b, tag_a, tag_b, weight_a, weight_b
 
 
 # 3. apply a Crossover_with_fix on these selected parents to generate two children, referred to as c and d.
@@ -228,6 +244,22 @@ def Crossover_with_fix(kid_a, kid_b):
             kid_c[kid_c.index(kid_b[j])] = kid_a[j]
             kid_d[kid_d.index(kid_a[j])] = kid_b[j]
     return kid_c, kid_d
+
+
+def Crossover_with_fix_C(kid_a, kid_b, kid_tag_a, kid_tag_b):
+    random_single_point = int(np.random.choice(dimension - 1))
+    kid_c = kid_a[:random_single_point] + kid_b[random_single_point:]
+    kid_d = kid_b[:random_single_point] + kid_a[random_single_point:]
+    kid_tag_c = kid_tag_a[:random_single_point] + kid_tag_b[random_single_point:]
+    kid_tag_d = kid_tag_b[:random_single_point] + kid_tag_a[random_single_point:]
+    for j in range(random_single_point, dimension - 1):
+        if kid_b[j] != kid_a[j]:
+            kid_tag_c[kid_c.index(kid_b[j])] = kid_tag_a[j]
+            kid_tag_d[kid_d.index(kid_a[j])] = kid_tag_b[j]
+            kid_c[kid_c.index(kid_b[j])] = kid_a[j]
+            kid_d[kid_d.index(kid_a[j])] = kid_b[j]
+
+    return kid_c, kid_d, kid_tag_c, kid_tag_d
 
 
 # 3. apply a OrderedCrossover on these selected parents to generate two children, referred to as c and d.
@@ -258,6 +290,46 @@ def single_swap_mutation(m_c, m_d):
     m_f[random_f[0]], m_f[random_f[1]] = m_f[random_f[1]], m_f[random_f[0]]
 
     return m_e, m_f
+
+
+def single_swap_mutation_C(m_c, m_d, t_c, t_d, weight_a, weight_b):
+    random_e = np.random.choice(dimension - 1, 2, replace=False)
+    random_f = np.random.choice(dimension - 1, 2, replace=False)
+    m_e = m_c.copy()
+    m_f = m_d.copy()
+    t_e = t_c.copy()
+    t_f = t_d.copy()
+    m_e[random_e[0]], m_e[random_e[1]] = m_e[random_e[1]], m_e[random_e[0]]
+    m_f[random_f[0]], m_f[random_f[1]] = m_f[random_f[1]], m_f[random_f[0]]
+    t_e[random_e[0]], t_e[random_e[1]] = t_e[random_e[1]], t_e[random_e[0]]
+    t_f[random_f[0]], t_f[random_f[1]] = t_f[random_f[1]], t_f[random_f[0]]
+
+    sample_tag_e_1 = weight_tag_list(t_e[random_e[0]], m_e[random_e[0]])
+    sample_tag_e_1.append(t_e[random_e[0]])
+    sample_tag_e_2 = weight_tag_list(t_e[random_e[1]], m_e[random_e[1]])
+    sample_tag_e_2.append(t_e[random_e[1]])
+    sample_tag_f_1 = weight_tag_list(t_f[random_f[0]], m_f[random_f[0]])
+    sample_tag_f_1.append(t_f[random_f[0]])
+    sample_tag_f_2 = weight_tag_list(t_f[random_f[1]], m_f[random_f[1]])
+    sample_tag_f_2.append(t_f[random_f[1]])
+
+    weight_e = weight_a
+    weight_f = weight_b
+    return m_e, m_f, t_e, t_f, weight_e, weight_f
+
+
+def weight_tag_list(tag, index):
+    if index < dimension // 3:
+        random_list = [random.choices([0, 1], weights=[0.6, 0.4], k=len(tag)) for _ in range(4)]
+    elif index > dimension // 3:
+        random_list = [random.choices([0, 1], weights=[0.4, 0.6], k=len(tag)) for _ in range(4)]
+    else:
+        random_list = [random.choices([0, 1], weights=[0.5, 0.5], k=len(tag)) for _ in range(4)]
+    return random_list
+
+
+def check_weight(list_matrix):
+    return
 
 
 # 4. Run a inversion on c and d to give two new solutions e and f. Evaluate the fitness of e and f.
@@ -296,6 +368,15 @@ def Replace_Weakest(fit_list):
         population[sorted_idx[0], 0], population[sorted_idx[0], 1] = fit_list, fit_score
 
 
+def Replace_Weakest_C(fit_list, fit_tag, fit_weight):
+    fit_score = CountF(fit_list)
+    fit_last_profit, fit_profit = CountC(fit_list, fit_tag)
+    sorted_idx = np.argsort(population[:, 2])
+    if fit_last_profit > population[sorted_idx[0], 2]:
+        instead_index = sorted_idx[0]
+        population[instead_index] = [fit_list, fit_score, fit_last_profit, fit_profit, fit_tag, fit_weight]
+
+
 # 5. Run Replace_FirstWeakest function, firstly for e, then f
 # Replace the first value lower than the current value
 def Replace_FirstWeakest(fit_list):
@@ -311,8 +392,8 @@ mutation_count_list = []
 tournament_size_list = []
 
 seed = 2000  # Seed value for random number generation
-mutation_count = 2  # Number of mutation operations if 10 exchange 5 times
-tournament_size = 4
+mutation_count = 10  # Number of mutation operations if 10 exchange 5 times
+tournament_size = 6
 population_size = 10
 UseDistanceMatrix = True  # Whether to use the distance matrix,
 # this is related to the calculation time,the difference in count_F function
@@ -323,10 +404,10 @@ details_classifier, details_0_1tag = initial_0_1_tags(seed)
 population = initial(population_size)  # Initialize the population
 
 # Flags for different states
-Crossover_with_fix_state = False  # Whether to enable Crossover_with_fix
-OrderedCrossover_state = True  # Whether to enable OrderedCrossover
-single_swap_mutation_state = False  # Whether to enable single swap mutation
-inversion_state = True  # Whether to enable inversion mutation
+Crossover_with_fix_state = True  # Whether to enable Crossover_with_fix
+OrderedCrossover_state = False  # Whether to enable OrderedCrossover
+single_swap_mutation_state = True  # Whether to enable single swap mutation
+inversion_state = False  # Whether to enable inversion mutation
 multiple_swap_mutation_state = False  # Whether to enable multiple swap mutation
 Replace_FirstWeakest_state = True  # Whether to enable replacing the first weakest individual
 Replace_Weakest_state = False  # Whether to enable replacing the weakest individual
@@ -337,7 +418,7 @@ save_pic_state = False  # Whether save picture
 start_time = time.time()
 steps = 10000
 # start to loop
-for step in tqdm(range(steps), desc='start loop'):
+for step in tqdm(range(steps), desc='steps:'):
     np.random.seed(seed)
     # if step == 2000:
     #     mutation_count = 6
@@ -345,27 +426,13 @@ for step in tqdm(range(steps), desc='start loop'):
     #     mutation_count = 2
     # if step == 6000:
     #     tournament_size = 6
-    a, b = Tournament_Selection(population, tournament_size)
-    if use_cross:
-        if Crossover_with_fix_state:
-            c, d = Crossover_with_fix(a, b)
-        if OrderedCrossover_state:
-            c, d = OrderedCrossover(a, b)
-    if not use_cross:
-        c, d = a.copy(), b.copy()
-    if single_swap_mutation_state:
-        e, f = single_swap_mutation(c, d)
-    if inversion_state:
-        e, f = inversion(c, d)
-    if multiple_swap_mutation_state:
-        e, f = multiple_swap_mutation(c, d, mutation_count)
-    if Replace_FirstWeakest_state:
-        Replace_FirstWeakest(e)
-        Replace_FirstWeakest(f)
-    if Replace_Weakest_state:
-        Replace_Weakest(e)
-        Replace_Weakest(f)
-    score = np.sum(population[:, 1]) / population_size
+    a, b, a_tag, b_tag, a_weight, b_weight = Tournament_Selection_C(population, tournament_size)
+    c, d, c_tag, d_tag = Crossover_with_fix_C(a, b, a_tag, b_tag)
+    e, f, e_tag, f_tag, e_weight, f_weight = single_swap_mutation_C(c, d, c_tag, d_tag, a_weight, b_weight)
+    Replace_Weakest_C(e, e_tag, e_weight)
+    Replace_Weakest_C(f, f_tag, f_weight)
+
+    score = np.sum(population[:, 2]) / population_size
     result.append(score)
     mutation_count_list.append(mutation_count)
     tournament_size_list.append(tournament_size)
@@ -373,12 +440,12 @@ for step in tqdm(range(steps), desc='start loop'):
 
 end_time = time.time()
 
-y = min(population[:, 1])
-z = np.argmin(population[:, 1])
+y = max(population[:, 2])
+z = np.argmax(population[:, 2])
 x = list(range(0, steps))
 current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-print(f'min value is {population[z, 1]}\nthe route is {[0] + population[z, 0]} ')
+print(f'min value is {population[z, 2]}\nthe route is {[0] + population[z, 0]} ')
 # Calculate the time difference
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time} seconds")
