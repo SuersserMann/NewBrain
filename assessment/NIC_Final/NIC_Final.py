@@ -48,16 +48,16 @@ details = np.array(details)
 
 def initial_0_1_tags(seed_number):
     details_classifier_f = [[[], []] for _ in range(dimension)]
-    details_0_1tag_f = [[[]] for _ in range(dimension)]
+    details_0_1tag_f = [[] for _ in range(dimension)]
     details_classifier_f[0] = [[0], [0]]
-    details_0_1tag_f[0] = [[0]]
+    details_0_1tag_f[0] = [0]
     for i in range(num_items):
         details_classifier_f[details[i, 3] - 1][0].append(details[i, 1])
         details_classifier_f[details[i, 3] - 1][1].append(details[i, 2])
 
     for i in range(1, dimension):
         random.seed(seed_number + i)
-        details_0_1tag_f[i][0] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
+        details_0_1tag_f[i] += ([random.choice([0, 1]) for _ in range(len(details_classifier_f[i][0]))])
     details_classifier_f = np.array(details_classifier_f, dtype=object)
     details_0_1tag_f = np.array(details_0_1tag_f, dtype=object)
     return details_classifier_f, details_0_1tag_f
@@ -68,7 +68,7 @@ def initial_0_1_tags(seed_number):
 # Give a seed so that the random value returned each time is fixed
 # The first column is the path, and the second column is the sum of the distances along the path.
 def initial(list_range):
-    p = np.zeros((list_range, 2), dtype=object)
+    p = np.zeros((list_range, 4), dtype=object)
     for i, j in tqdm(zip(range(list_range), range(2023, 2023 + population_size), ), total=list_range, desc='initial '
                                                                                                            'population'):
         random.seed(j)
@@ -76,6 +76,7 @@ def initial(list_range):
         random.shuffle(initial_list)
         p[i, 0] = initial_list
         p[i, 1] = CountF(initial_list)
+        p[i, 2],p[i, 3]= CountC(initial_list)
     return p
 
 
@@ -111,20 +112,34 @@ def CountF(p_list):
         return s
 
 
-def CountC(p_list, one_zero_tag):
+def CountC(p_list):
     # v=v(max)-w/q(v(max)-v(min))
-    distance_cost = CountF(p_list)
     if UseDistanceMatrix:
-        for i in range(tournament_size):
-            w = 0
-            q = capacity
-            v = max_speed
-            for j in range(1, dimension - 1):  # dont include city1 (1 to dimension-2)(0 in this list)
-                for k in range(len(details_classifier[i, 0])):
-                    # if details_0_1tag[i,0,]
+        w = 0
+        q = capacity
+        v = max_speed
+        profit = 0
+        cost = (distance_matrix[0, p_list[0]] / v) * renting_ratio
+        for i in range(1, dimension - 1):  # not include city1 (1 to dimension-2)(0 in this list)
+            cur = p_list[i]
+            for j in range(len(details_classifier[cur, 0])):
+                if details_0_1tag[cur][j] == 1:
+                    profit += details_classifier[cur, 0][j]
+                    w += details_classifier[cur, 1][j]
+                else:
                     continue
+            if w >= q:
+                v = min_speed
+            else:
+                v = max_speed - (w / q) * (max_speed - min_speed)
+            cost += (distance_matrix[i, i + 1] / v) * renting_ratio
+        cost += (distance_matrix[p_list[-1], 0] / v) * renting_ratio
+        return profit-cost,profit
+
 
 # 2. Use tournament selection twice to select two parents, denoted as a and b
+
+
 # Select random numbers within the number of tournament_size non-repeating populations in the population,
 # and select the one with the best result to return
 def Tournament_Selection(p_list, count):
@@ -246,8 +261,10 @@ UseDistanceMatrix = True  # Whether to use the distance matrix,
 # this is related to the calculation time,the difference in count_F function
 if UseDistanceMatrix:
     distance_matrix = distance_matrix_function()
-population = initial(population_size)  # Initialize the population
+
 details_classifier, details_0_1tag = initial_0_1_tags(seed)
+population = initial(population_size)  # Initialize the population
+
 # Flags for different states
 Crossover_with_fix_state = False  # Whether to enable Crossover_with_fix
 OrderedCrossover_state = True  # Whether to enable OrderedCrossover
