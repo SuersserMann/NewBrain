@@ -68,7 +68,7 @@ def initial_0_1_tags(seed_number):
 # Give a seed so that the random value returned each time is fixed
 # The first column is the path, and the second column is the sum of the distances along the path.
 def initial(list_range):
-    p = np.zeros((list_range, 4), dtype=object)
+    p = np.zeros((list_range, 5), dtype=object)
     for i, j in tqdm(zip(range(list_range), range(2023, 2023 + population_size), ), total=list_range, desc='initial '
                                                                                                            'population'):
         random.seed(j)
@@ -77,6 +77,7 @@ def initial(list_range):
         p[i, 0] = initial_list
         p[i, 1] = CountF(initial_list)
         p[i, 2], p[i, 3] = CountC(initial_list)
+        p[i, 4] = details_0_1tag
     return p
 
 
@@ -140,8 +141,44 @@ def CountC(p_list):
             cost += (distance_matrix[i, i + 1] / v) * renting_ratio
         cost += (distance_matrix[p_list[-1], 0] / v) * renting_ratio
         return profit - cost, profit
+    else:
+        w = 0
+        q = capacity
+        v = max_speed
+        profit = 0
+        cost = 0
+        full = False
+        for i in range(1, dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
+            cur = p_list[i]
+            if not full:
+                for j in range(len(details_classifier[cur, 0])):
+                    if details_0_1tag[cur][j] == 1:
+                        if w < q:
+                            profit += details_classifier[cur, 0][j]
+                            w += details_classifier[cur, 1][j]
+                        else:
+                            full = True
+                    else:
+                        continue
 
+            if w >= q:
+                v = min_speed
+            else:
+                v = max_speed - (w / q) * (max_speed - min_speed)
 
+            # Calculate distance using coordinates
+            distance = np.sqrt(
+                np.sum((np.array([coordinates[p_list[i], 1], coordinates[p_list[i], 2]], dtype=float) - np.array(
+                    [coordinates[p_list[i + 1], 1], coordinates[p_list[i + 1], 2]], dtype=float)) ** 2))
+            cost += (distance / v) * renting_ratio
+
+        # Calculate the last city to the start
+        last_distance = np.sqrt(
+            np.sum((np.array([coordinates[p_list[-1], 1], coordinates[p_list[-1], 2]], dtype=float) - np.array(
+                [coordinates[0, 1], coordinates[0, 2]], dtype=float)) ** 2))
+        cost += (last_distance / v) * renting_ratio
+
+        return profit - cost, profit
 # 2. Use tournament selection twice to select two parents, denoted as a and b
 
 
@@ -276,7 +313,7 @@ seed = 2000  # Seed value for random number generation
 mutation_count = 2  # Number of mutation operations if 10 exchange 5 times
 tournament_size = 4
 population_size = 10
-UseDistanceMatrix = True  # Whether to use the distance matrix,
+UseDistanceMatrix = False  # Whether to use the distance matrix,
 # this is related to the calculation time,the difference in count_F function
 if UseDistanceMatrix:
     distance_matrix = distance_matrix_function()
