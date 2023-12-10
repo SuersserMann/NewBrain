@@ -318,12 +318,12 @@ def single_swap_mutation_C(m_c, m_d, t_c, t_d, weight_a, weight_b):
     sample_tag_f_2 = weight_tag_list(t_f[random_f[1]], m_f[random_f[1]])
     sample_tag_f_2.append(t_f[random_f[1]])
 
-    final_tag_1, weight_e = check_weight(m_e, sample_tag_e_1, sample_tag_e_2, random_e[0],
-                                         random_e[1], weight_a, t_e)
-    final_tag_2, weight_f = check_weight(m_f, sample_tag_f_1, sample_tag_f_2, random_f[0],
-                                         random_f[1], weight_b, t_f)
+    final_tag_1, weight_e, e_result, e_profit = check_weight(m_e, sample_tag_e_1, sample_tag_e_2, random_e[0],
+                                                             random_e[1], weight_a, t_e)
+    final_tag_2, weight_f, f_result, f_profit = check_weight(m_f, sample_tag_f_1, sample_tag_f_2, random_f[0],
+                                                             random_f[1], weight_b, t_f)
 
-    return m_e, m_f, final_tag_1, final_tag_2, weight_e, weight_f
+    return m_e, m_f, final_tag_1, final_tag_2, weight_e, weight_f, e_result, e_profit, f_result, f_profit
 
 
 def weight_tag_list(tag, index):
@@ -373,14 +373,15 @@ def check_weight(kid, list1, list2, index1, index2, weight, tag):
             tag_copy = copy.deepcopy(tag)
             tag_copy[index1] = c_list[i][0][0]
             tag_copy[index2] = c_list[i][0][1]
-            last_score, _ = CountC(kid, tag_copy)
-            d_list.append([copy.deepcopy(tag_copy), last_score])
-        best_tag_copy, final_score = max(d_list, key=lambda x: x[1])
+            last_score, last_profit = CountC(kid, tag_copy)
+            d_list.append([copy.deepcopy(tag_copy), last_score, last_profit])
+        best_tag_copy, final_score, best_profit = max(d_list, key=lambda x: x[1])
         second_max_value = max(row[1] for row in d_list)
         first_occurrence = next((i for i, row in enumerate(d_list) if row[1] == second_max_value), None)
-        return best_tag_copy, c_list[first_occurrence][1]
+        return best_tag_copy, c_list[first_occurrence][1], final_score, best_profit
     else:
-        return tag,weight
+        last_score, last_profit = CountC(kid, tag)
+        return tag, weight, last_score, last_profit
 
 
 # 4. Run a inversion on c and d to give two new solutions e and f. Evaluate the fitness of e and f.
@@ -419,9 +420,8 @@ def Replace_Weakest(fit_list):
         population[sorted_idx[0], 0], population[sorted_idx[0], 1] = fit_list, fit_score
 
 
-def Replace_Weakest_C(fit_list, fit_tag, fit_weight):
+def Replace_Weakest_C(fit_list, fit_tag, fit_weight, fit_last_profit, fit_profit):
     fit_score = CountF(fit_list)
-    fit_last_profit, fit_profit = CountC(fit_list, fit_tag)
     sorted_idx = np.argsort(population[:, 2])
     if fit_last_profit > population[sorted_idx[0], 2]:
         instead_index = sorted_idx[0]
@@ -467,7 +467,7 @@ use_cross = True  # Whether use crossover
 save_pic_state = False  # Whether save picture
 
 start_time = time.time()
-steps = 10000
+steps =10000
 # start to loop
 for step in tqdm(range(steps), desc='steps:'):
     np.random.seed(seed)
@@ -479,9 +479,12 @@ for step in tqdm(range(steps), desc='steps:'):
     #     tournament_size = 6
     a, b, a_tag, b_tag, a_weight, b_weight = Tournament_Selection_C(population, tournament_size)
     c, d, c_tag, d_tag = Crossover_with_fix_C(a, b, a_tag, b_tag)
-    e, f, e_tag, f_tag, e_weight, f_weight = single_swap_mutation_C(c, d, c_tag, d_tag, a_weight, b_weight)
-    Replace_Weakest_C(e, e_tag, e_weight)
-    Replace_Weakest_C(f, f_tag, f_weight)
+    e, f, e_tag, f_tag, e_weight, f_weight, e_result, e_profit, f_result, f_profit = single_swap_mutation_C(c, d, c_tag,
+                                                                                                            d_tag,
+                                                                                                            a_weight,
+                                                                                                            b_weight)
+    Replace_Weakest_C(e, e_tag, e_weight, e_result, e_profit)
+    Replace_Weakest_C(f, f_tag, f_weight, f_result, f_profit)
 
     score = np.sum(population[:, 2]) / population_size
     result.append(score)
