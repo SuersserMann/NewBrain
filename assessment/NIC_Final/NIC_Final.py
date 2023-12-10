@@ -1,11 +1,14 @@
+import copy
+
 from tqdm import tqdm
 import numpy as np
 import random
 import matplotlib.pyplot as plt
 import datetime
 import time
+from itertools import product
 
-with open("a280-n1395.txt", "r") as f:
+with open("a280-n279.txt", "r") as f:
     lines = f.readlines()
 
 # print(lines[0])
@@ -148,7 +151,7 @@ def CountC(p_list, p_tag):
         profit = 0
         cost = (np.sqrt(
             np.sum((np.array([coordinates[0, 1], coordinates[0, 2]], dtype=float) - np.array(
-                [coordinates[p_list[0], 1], coordinates[p_list[0], 2]], dtype=float)) ** 2)))*renting_ratio
+                [coordinates[p_list[0], 1], coordinates[p_list[0], 2]], dtype=float)) ** 2))) * renting_ratio
         for i in range(dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
             cur = p_list[i]
             for j in range(len(details_classifier[cur - 1, 0])):
@@ -293,6 +296,8 @@ def single_swap_mutation(m_c, m_d):
 
 
 def single_swap_mutation_C(m_c, m_d, t_c, t_d, weight_a, weight_b):
+    # m_e 1-279
+    # t_e 0-278
     random_e = np.random.choice(dimension - 1, 2, replace=False)
     random_f = np.random.choice(dimension - 1, 2, replace=False)
     m_e = m_c.copy()
@@ -313,23 +318,69 @@ def single_swap_mutation_C(m_c, m_d, t_c, t_d, weight_a, weight_b):
     sample_tag_f_2 = weight_tag_list(t_f[random_f[1]], m_f[random_f[1]])
     sample_tag_f_2.append(t_f[random_f[1]])
 
-    weight_e = weight_a
-    weight_f = weight_b
-    return m_e, m_f, t_e, t_f, weight_e, weight_f
+    final_tag_1, weight_e = check_weight(m_e, sample_tag_e_1, sample_tag_e_2, random_e[0],
+                                         random_e[1], weight_a, t_e)
+    final_tag_2, weight_f = check_weight(m_f, sample_tag_f_1, sample_tag_f_2, random_f[0],
+                                         random_f[1], weight_b, t_f)
+
+    return m_e, m_f, final_tag_1, final_tag_2, weight_e, weight_f
 
 
 def weight_tag_list(tag, index):
     if index < dimension // 3:
-        random_list = [random.choices([0, 1], weights=[0.6, 0.4], k=len(tag)) for _ in range(4)]
+        random_list = [random.choices([0, 1], weights=[0.8, 0.2], k=len(tag)) for _ in range(2)]
     elif index > dimension // 3:
-        random_list = [random.choices([0, 1], weights=[0.4, 0.6], k=len(tag)) for _ in range(4)]
+        random_list = [random.choices([0, 1], weights=[0.3, 0.7], k=len(tag)) for _ in range(2)]
     else:
-        random_list = [random.choices([0, 1], weights=[0.5, 0.5], k=len(tag)) for _ in range(4)]
+        random_list = [random.choices([0, 1], weights=[0.5, 0.5], k=len(tag)) for _ in range(2)]
     return random_list
 
 
-def check_weight(list_matrix):
-    return
+def check_weight(kid, list1, list2, index1, index2, weight, tag):
+    # kid 1-279
+    # index 0-278
+    # tag 0-278
+    # details_classifier 0-278
+    tag_1 = tag[kid[index1] - 1]
+    tag_2 = tag[kid[index2] - 1]
+    tag_weight = 0
+    for i in range(len(tag_1)):
+        if tag_1[i] == 1:
+            tag_weight += details_classifier[kid[index1] - 1, 1][i]
+    for i in range(len(tag_2)):
+        if tag_2[i] == 1:
+            tag_weight += details_classifier[kid[index2] - 1, 1][i]
+    result = []
+    for item1 in list1:
+        for item2 in list2:
+            result.append([item1, item2])
+    a_list = [list(map(list, pair)) for pair in set(tuple(map(tuple, sublist)) for sublist in result)]
+
+    c_list = []
+    for i in range(len(a_list)):
+        b_score = 0
+        for j in range(len(a_list[i][0])):
+            if a_list[i][0][j] == 1:
+                b_score += details_classifier[kid[index1] - 1, 1][j]
+        for j in range(len(a_list[i][1])):
+            if a_list[i][1][j] == 1:
+                b_score += details_classifier[kid[index2] - 1, 1][j]
+        if (weight + b_score - tag_weight) < capacity:
+            c_list.append([a_list[i], weight + b_score - tag_weight])
+    if c_list:
+        d_list = []
+        for i in range(len(c_list)):
+            tag_copy = copy.deepcopy(tag)
+            tag_copy[index1] = c_list[i][0][0]
+            tag_copy[index2] = c_list[i][0][1]
+            last_score, _ = CountC(kid, tag_copy)
+            d_list.append([copy.deepcopy(tag_copy), last_score])
+        best_tag_copy, final_score = max(d_list, key=lambda x: x[1])
+        second_max_value = max(row[1] for row in d_list)
+        first_occurrence = next((i for i, row in enumerate(d_list) if row[1] == second_max_value), None)
+        return best_tag_copy, c_list[first_occurrence][1]
+    else:
+        return tag,weight
 
 
 # 4. Run a inversion on c and d to give two new solutions e and f. Evaluate the fitness of e and f.
@@ -445,7 +496,9 @@ z = np.argmax(population[:, 2])
 x = list(range(0, steps))
 current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-print(f'min value is {population[z, 2]}\nthe route is {[0] + population[z, 0]} ')
+print(f'min value is {population[z, 2]}\nthe route is {[0] + population[z, 0]} \nthe distance is {population[z, 1]}'
+      f'\nthe income is {population[z, 2]}\nthe profit is {population[z, 3]}\nthe weight is {population[z, 5]}'
+      f'\nthe package is {population[z, 4]}')
 # Calculate the time difference
 elapsed_time = end_time - start_time
 print(f"Elapsed time: {elapsed_time} seconds")
@@ -455,7 +508,7 @@ plt.subplots_adjust(hspace=0.3)
 
 plt.subplot(2, 1, 1)
 plt.xlabel('step')
-plt.ylabel('sum population cost')
+plt.ylabel('sum income')
 plt.title(f'min_value:{y},m_count:{mutation_count},t_count:{tournament_size},len_p:{population_size}')
 plt.plot(x, result, 'r-', lw=3)
 plt.legend(['result'])
