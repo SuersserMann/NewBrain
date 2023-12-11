@@ -128,7 +128,7 @@ def CountC(p_list, p_tag):
         profit = 0
         cost = (distance_matrix[0, p_list[0]] / v) * renting_ratio
 
-        for i in range(dimension - 2):  # not include city1 (1 to dimension-2)(0 in this list)
+        for i in range(dimension - 2):  # 0-277 not include city1 (1 to dimension-2)(0 in this list)
             cur = p_list[i]  # 1-279
             for j in range(len(details_classifier[cur - 1, 0])):
                 if p_tag[cur - 1][j] == 1:
@@ -223,7 +223,7 @@ def Tournament_Selection_C(p_list, count):
     np.random.seed(seed + seed_tournament)
     random_t_2 = np.random.choice(population_size, count, replace=False)
     selected_values = population[random_t_2, 2]
-    max_index = int(random_t_1[np.argmax(selected_values)])
+    max_index = int(random_t_2[np.argmax(selected_values)])
     res_b = p_list[max_index, 0]
     tag_b = p_list[max_index, 4]
     weight_b = p_list[max_index, 5]
@@ -380,8 +380,8 @@ def check_weight(kid, list1, list2, index1, index2, weight, tag):
         first_occurrence = next((i for i, row in enumerate(d_list) if row[1] == second_max_value), None)
         return best_tag_copy, c_list[first_occurrence][1], final_score, best_profit
     else:
-        last_score, last_profit = CountC(kid, tag)
-        return tag, weight, last_score, last_profit
+        last_score, last_profit = CountC(kid, details_0_1tag)
+        return details_0_1tag, weight, last_score, last_profit
 
 
 # 4. Run a inversion on c and d to give two new solutions e and f. Evaluate the fitness of e and f.
@@ -512,7 +512,7 @@ plt.subplots_adjust(hspace=0.3)
 plt.subplot(2, 1, 1)
 plt.xlabel('step')
 plt.ylabel('sum income')
-plt.title(f'min_value:{y},m_count:{mutation_count},t_count:{tournament_size},len_p:{population_size}')
+plt.title(f'max_income:{y},m_count:{mutation_count},t_count:{tournament_size},len_p:{population_size}')
 plt.plot(x, result, 'r-', lw=3)
 plt.legend(['result'])
 
