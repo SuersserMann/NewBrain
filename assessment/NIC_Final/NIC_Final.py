@@ -467,7 +467,7 @@ use_cross = True  # Whether use crossover
 save_pic_state = False  # Whether save picture
 
 start_time = time.time()
-steps =10000
+steps = 100000
 # start to loop
 for step in tqdm(range(steps), desc='steps:'):
     np.random.seed(seed)

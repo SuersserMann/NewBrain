@@ -16,43 +16,40 @@ Please confirm whether these packages are already configured in your environment
 
 ## Introduction to Parameters
 
-- Starting from line 187 in the code is the section where parameters are set. It is convenient to modify these parameters for different experiments.
-
+- Starting from line 445 in the code is the section where parameters are set. It is convenient to modify these parameters for different experiments.
+- if you want to change Data ,modify the file name in the eleventh line "with open("a280-n279.txt", "r") as f:" to the specified file of your choice.
 - Used to set the random seed.
   
   - `seed = 2000`: 
 - Sets the number of mutations.
-  - `mutation_count = 2`
+  - `mutation_count = 10`
 - Sets the size of the tournament.
-  - `tournament_size = 4`
+  - `tournament_size = 6`
 - Sets the size of the population.
   - `population_size = 10`
-  
-- Determines whether to use `Crossover_with_fix` or `OrderedCrossover`. Note that at least one crossover method should be set to `True`, and the others set to `False`.
-  - `Crossover_with_fix_state = False`
-  - `OrderedCrossover_state = True`
+- Sets the Steps of the project.
+  - `steps = 100000`
 
-- Determines whether to use `single_swap_mutation`, `inversion`, or `multiple_swap_mutation`. Note that at least one mutation method should be set to `True`, and the others set to `False`.
-  - `single_swap_mutation_state = False`
-
-  - `inversion_state = True`
-  
-  - `multiple_swap_mutation_state = False`
-
-- Determines whether to use `Replace_FirstWeakest` or `Replace_Weakest`. Note that at least one replacement method should be set to `True`, and the others set to `False`.
-  - `Replace_FirstWeakest_state = True`
-  - `Replace_Weakest_state = False`
-
-- Specifies whether to use crossover.
-  - `use_cross = True`
-- Specifies whether to save result images.
-  - `save_pic_state = False`
-
+- The best Result parameter:
+  - seed = 2000,mutation_count = 10,tournament_size = 6,population_size = 10,steps = 100000
 ## show results in console
-- min value of city
-- the route
-- Elapsed time
-- For example:
-  - min value is 26494.0
-  - the route is [53, 54, 7, 21, 3, 49, 52, 19, 31, 24, 8, 39, 12, 29, 0, 17, 43, 57, 23, 56, 11, 22, 4, 26, 42, 48, 46, 50, 9, 51, 34, 2, 28, 32, 36, 44, 55, 45, 14, 33, 13, 27, 18, 5, 16, 25, 35, 20, 38, 10, 6, 30, 41, 37, 15, 47, 40, 1] 
-  - Elapsed time: 1.8578126430511475 seconds
+- Problem Parameters:
+- Dimension: 280
+- Number of Items: 279
+- Capacity of Knapsack: 25936.0
+- Min Speed: 0.1
+- Max Speed: 1.0
+- Renting Ratio: 5.61
+- import data: 100%|██████████| 570/570 [00:00<00:00, 591917.13it/s]
+- prepare for matrix distance: 100%|██████████| 280/280 [00:00<00:00, 447.20it/s]
+- initial population: 100%|██████████| 10/10 [00:00<00:00, 1527.48it/s]
+- steps:: 100%|██████████| 100000/100000 [09:00<00:00, 184.87it/s]
+- min value is -19151.02435642927
+- the route is [0, 241, 246, 225, 222, 223, 224, 233, 234, 235, 229, 250, 208, 264, 132, 39, 40, 41, 152, 175, 149, 181, 171, 170, 109, 48, 36, 35, 30, 25, 22, 11, 4, 2, 279, 1, 242, 247, 248, 255, 136, 114, 115, 85, 64, 65, 71, 67, 56, 55, 44, 43, 58, 57, 63, 81, 80, 92, 98, 91, 101, 198, 209, 249, 212, 213, 142, 145, 130, 126, 125, 27, 28, 29, 124, 33, 34, 54, 76, 77, 78, 155, 133, 269, 15, 17, 162, 165, 187, 191, 220, 221, 218, 219, 201, 199, 200, 194, 217, 215, 202, 197, 82, 75, 74, 73, 72, 116, 135, 267, 266, 148, 178, 179, 163, 164, 188, 189, 190, 193, 196, 192, 182, 161, 108, 87, 83, 86, 84, 112, 88, 89, 103, 104, 106, 169, 166, 167, 99, 97, 96, 95, 94, 93, 79, 90, 105, 144, 143, 203, 204, 207, 261, 260, 273, 272, 271, 268, 177, 183, 184, 186, 185, 146, 270, 14, 12, 6, 7, 9, 10, 8, 259, 256, 253, 254, 251, 252, 137, 151, 59, 42, 45, 46, 53, 52, 47, 49, 50, 51, 68, 69, 70, 66, 245, 244, 237, 232, 231, 230, 243, 278, 5, 275, 258, 257, 13, 23, 24, 21, 127, 153, 154, 180, 160, 174, 157, 156, 110, 111, 113, 119, 118, 150, 176, 159, 173, 172, 102, 107, 38, 37, 32, 31, 26, 276, 3, 274, 16, 265, 139, 140, 141, 147, 138, 129, 128, 121, 120, 117, 61, 62, 60, 20, 19, 18, 131, 158, 168, 100, 195, 216, 214, 240, 239, 238, 236, 228, 227, 226, 210, 211, 206, 205, 122, 123, 134, 263, 262, 277] 
+- the distance is 7944.60707949182
+- the income is -19151.02435642927
+- the profit is 32303
+- the weight is 25735
+- the package is [[1], [1], [1], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [0], [1], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [1], [0], [0], [0], [0], [0], [0], [0], [0], [1], [1], [1], [0], [0], [0], [1], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [1], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [1], [0], [0], [0], [1], [1], [0], [0], [1], [0], [1], [0], [0], [0], [1], [1], [0], [0], [0], [0], [1], [0], [1], [0], [0], [0], [0], [0], [0], [0], [1], [0], [1], [0], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [1], [0], [0], [0], [0], [1], [1], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
+- Elapsed time: 540.9119300842285 seconds
+- And a plot chart
