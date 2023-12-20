@@ -17,7 +17,7 @@ def quicksort(nums, left, right):
             i += 1  # 左指针继续往右走
             j -= 1  # 右指针继续往左走
     if i < right: quicksort(nums, i, right)  # 递归解决flag左边的低位数组的排序
-    if j > left:  quicksort(nums, left, i)  # 递归解决flag右边的低位数组的排序
+    if j > left:  quicksort(nums, left, j)  # 递归解决flag右边的低位数组的排序
     return nums
 
 
