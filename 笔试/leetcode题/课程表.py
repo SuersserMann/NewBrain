@@ -1,26 +1,38 @@
 import collections
 
 
-def canFinish(numCourses, prerequisites):
-    dl = [[] for _ in range(numCourses)]
-    degree = [0 for _ in range(numCourses)]
-    for i in prerequisites:
-        dl[i[1]].append(i[0])
-        degree[i[0]] += 1
-    deque = collections.deque()
-    for i in range(numCourses):
-        if degree[i] == 0:
-            deque.append(i)
-    while deque:
-        cla = deque.pop()
-        numCourses -= 1
-        for c in dl[cla]:
-            degree[c] -= 1
-            if degree[c] == 0:
-                deque.append(c)
-    return not numCourses
+# 这是一个解决拓扑排序的典型算法，其解法是从入度为0为初始栈，每次去除掉一个入度为0的课，同时更新和它相关的出度的课的入度，如果为0则添加进栈
+# 如果删去的栈的数量和原始相等，则代表无环
+# 不要把变量的名字写的太抽象
+class Solution:
+    def canFinish(self, numCourses, prerequisites):
+        dic = collections.defaultdict(list)
+        in_edge = [0] * numCourses
+        dq = collections.deque()
+        for i in range(len(prerequisites)):
+            dic[prerequisites[i][0]].append(prerequisites[i][1])
+            in_edge[prerequisites[i][1]] += 1
+        for i in range(numCourses):
+            if in_edge[i] == 0:
+                dq.append(i)
+        if not dq:
+            return False
+        res = 0
+        while dq:
+            cur = dq.popleft()
+            out_edge = dic[cur]
+            for j in range(len(out_edge)):
+                in_edge[out_edge[j]] -= 1
+                if in_edge[out_edge[j]] == 0:
+                    dq.append(out_edge[j])
+            res += 1
+        if res == numCourses:
+            return True
+        else:
+            return False
 
 
-numCourses = 2
-prerequisites = [[1, 0]]
-print(canFinish(numCourses, prerequisites))
+s = Solution()
+numCourses = 5
+prerequisites = [[1, 4], [2, 4], [3, 1], [3, 2]]
+print(s.canFinish(numCourses, prerequisites))
