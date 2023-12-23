@@ -1,48 +1,25 @@
-import numpy as np
-
-
+# 从左往右找最大值
+# 从右往左找最大值
+# 之后遍历，比较两个列表最小值与当前高度的差
 class Solution:
     def trap(self, height):
-        if len(height) <= 1:
-            return 0
-        pre = np.array(height)
-        pre_idx = np.argsort(pre)[::-1]
-        idx = {}
         res = 0
-        l = min(pre_idx[0], pre_idx[1])
-        r = max(pre_idx[0], pre_idx[1])
-        idx[pre_idx[0]]=pre_idx[0]
-        idx[pre_idx[1]]=pre_idx[1]
-        ml = l
-        mr = r
-        step = 2
-        while len(idx) < len(height):
-            xx = 0
-            for i in range(l + 1, r):
-                idx[i]=i
-                xx += pre[i]
+        dp1 = [0] * len(height)
+        for i in range(len(height)):
+            res = max(res, height[i])
+            dp1[i] = res
+        res = 0
+        dp2 = [0] * len(height)
+        for i in range(len(height) - 1, -1, -1):
+            res = max(res, height[i])
+            dp2[i] = res
 
-            res += (r - l - 1) * min(pre[l], pre[r]) - xx
-
-            for i in pre_idx[step:]:
-                if i not in idx:
-                    if i < ml:
-                        step += 1
-                        idx[i]=i
-                        r = ml
-                        ml = i
-                        l = i
-                        break
-
-                    else:
-                        step += 1
-                        idx[i]=i
-                        l = mr
-                        mr = i
-                        r = i
-                        break
-        return int(res)
+        res = 0
+        for i in range(len(height)):
+            if min(dp1[i], dp2[i]) > height[i]:
+                res += min(dp1[i], dp2[i]) - height[i]
+        return res
 
 
 s = Solution()
-print(s.trap([4,2,0,3,2,5]))
+print(s.trap([4, 2, 0, 3, 2, 5]))

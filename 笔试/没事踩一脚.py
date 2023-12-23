@@ -1,10 +1,25 @@
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+class Solution:
+    def subsets(self, nums):
+        m = len(nums)
+        res = []
+
+        def dfs(length, path):
+            if len(path) == length:
+
+                res.append(path.copy())
+                return
+            for i in range(m):
+                if nums[i] not in path:
+                    path.append(nums[i])
+                    dfs(length, path)
+                    path.pop()
+            return res
+
+        for j in range(m + 1):
+            dfs(j, [])
+
+        return res
 
 
-dummy = ListNode(1)
-cur = dummy
-cur.next = ListNode(2)
-print(dummy.next.val)
+s = Solution()
+print(s.subsets([1, 2, 3]))

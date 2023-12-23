@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-a_list = np.random.randint(1, 101, 100)
+a_list = [1, 2, 2, 2, 2, 0, 0, 0, 1, 1]
 print()
 
 
