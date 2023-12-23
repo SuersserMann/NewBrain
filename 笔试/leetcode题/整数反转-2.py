@@ -1,36 +1,36 @@
-x = -597
+x = 5970
 
 
-def reverse(x):
-    if x >= 0:
-        c = x
-        d = []
-        result = 0
-        while c != 0:
-            a = c % 10
-            c = c // 10
-            d.append(a)
-        for i in range(len(d)):
-            result += d[i] * 10 ** (len(d)-i-1)
-        if result<=2**31-1:
+class Solution:
+    def reverse(self, x):
 
-            return result
+        if x >= 0:
+            c = str(x)
+            cur = 0
+            for i in range(len(c) - 1, -1, -1):
+                if c[i] == '0':
+                    cur += 1
+                else:
+                    break
+            c = c[len(c) - cur - 1::-1]
+            c=int(c)
+            if c > 2 ** 31:
+                return 0
+            return c
         else:
-            return 0
-    else:
-        c = -x
-        d = []
-        result = 0
-        while c != 0:
-            a = c % 10
-            c = c // 10
-            d.append(a)
-        for i in range(len(d)):
-            result += d[i] * 10 ** (len(d) - i - 1)
-        if result <= 2 ** 31:
-            return -result
-        else:
-            return 0
+            c = str(x)
+            cur = 0
+            for i in range(len(c) - 1, -1, -1):
+                if c[i] == '0':
+                    cur += 1
+                else:
+                    break
 
+            c = '-' + c[len(c) - cur - 1:0:-1]
+            c = int(c)
+            if c < (-1) * 2 ** 31:
+                return 0
+            return c
 
-print(reverse(x))
+s=Solution()
+print(s.reverse(x))

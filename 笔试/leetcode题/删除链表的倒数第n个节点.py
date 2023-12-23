@@ -5,19 +5,35 @@ class ListNode:
 
 
 class Solution:
+    # 快慢指针
+    # def removeNthFromEnd(self, head, n):
+    #     pre = ListNode(0)
+    #     dummy = pre
+    #     pre.next = head
+    #     count = 0
+    #     start = head
+    #     while start:
+    #         count += 1
+    #         start = start.next
+    #     for i in range(count - n):
+    #         pre = pre.next
+    #     cur = pre.next.next
+    #     pre.next = cur
+    #     return dummy.next
+
     def removeNthFromEnd(self, head, n):
-        res = ListNode(0, head)
-        pre = res
-        cur = head
-        # [1,2,3,4,5],n=3
-        # []
-        for i in range(n):
+        pre = ListNode(0)
+        dummy = pre
+        pre.next = head
+        cur = pre
+        for i in range(n + 1):
             cur = cur.next
         while cur:
-            cur = cur.next
             pre = pre.next
-        pre.next = pre.next.next
-        return res.next
+            cur = cur.next
+        inter = pre.next.next
+        pre.next=inter
+        return dummy.next
 
 
 a1 = ListNode(1)
@@ -30,7 +46,7 @@ a2.next = a3
 a3.next = a4
 a4.next = a5
 a = Solution()
-new_head = a.removeNthFromEnd(a1, 5)
+new_head = a.removeNthFromEnd(a1, 2)
 cur2 = new_head
 while cur2:
     print(cur2.val)
